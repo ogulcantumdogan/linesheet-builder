@@ -2,6 +2,13 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Simple security rule - no auth required
+    // Since you mentioned this is a single user application with no sensitive data
+    match /projects/{projectId} {
+      allow read, write;
+    }
+    
+    // Catch-all rule to deny access to any other collection
     match /{document=**} {
       allow read, write: if false;
     }

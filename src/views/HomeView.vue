@@ -1,29 +1,41 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLineSheetStore } from '../stores/linesheet'
+import LoadingIndicator from '../components/LoadingIndicator.vue'
 
 const store = useLineSheetStore()
 const router = useRouter()
 const newProjectName = ref('')
+const errorMessage = ref('')
 
-function createProject() {
+onMounted(async () => {
+  await store.loadProjects()
+})
+
+async function createProject() {
   if (!newProjectName.value.trim()) return
   
-  const id = store.createProject(newProjectName.value.trim())
-  newProjectName.value = ''
+  errorMessage.value = ''
+  const id = await store.createProject(newProjectName.value.trim())
+  
+  if (id) {
+    newProjectName.value = ''
+    router.push(`/linesheet/${id}`)
+  } else {
+    errorMessage.value = 'Failed to create project. Please try again.'
+  }
+}
+
+async function openProject(id: string) {
+  await store.loadProject(id)
   router.push(`/linesheet/${id}`)
 }
 
-function openProject(id: string) {
-  store.loadProject(id)
-  router.push(`/linesheet/${id}`)
-}
-
-function deleteProject(id: string, event: Event) {
+async function deleteProject(id: string, event: Event) {
   event.stopPropagation()
   if (confirm('Bu projeyi silmek istediğinizden emin misiniz?')) {
-    store.deleteProject(id)
+    await store.deleteProject(id)
   }
 }
 
@@ -34,7 +46,13 @@ function formatDate(date: Date) {
 
 <template>
   <div class="home-container">
+    <LoadingIndicator :show="store.isLoading" message="Please wait..." />
+    
     <h1>Koleksiyon Föy Oluşturucu</h1>
+    
+    <div v-if="store.error || errorMessage" class="error-message">
+      {{ store.error || errorMessage }}
+    </div>
     
     <div class="create-project">
       <h2>Yeni Proje Oluştur</h2>
@@ -45,7 +63,7 @@ function formatDate(date: Date) {
           placeholder="Proje adını girin"
           @keyup.enter="createProject"
         >
-        <button @click="createProject">Oluştur</button>
+        <button @click="createProject" :disabled="store.isLoading">Oluştur</button>
       </div>
     </div>
     
@@ -67,7 +85,13 @@ function formatDate(date: Date) {
             <p>Ürün sayısı: {{ project.products.length }}</p>
           </div>
           <div class="project-actions">
-            <button class="delete-btn" @click="deleteProject(project.id, $event)">Sil</button>
+            <button 
+              class="delete-btn" 
+              @click="deleteProject(project.id, $event)" 
+              :disabled="store.isLoading"
+            >
+              Sil
+            </button>
           </div>
         </div>
       </div>
@@ -158,5 +182,19 @@ button:hover {
   text-align: center;
   color: #666;
   margin-top: 20px;
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #c62828;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>

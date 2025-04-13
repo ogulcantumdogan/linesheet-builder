@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 // import draggable from 'vue.draggable.next' // Removed draggable
 import { useLineSheetStore, type Product, type LineSheetProject } from '../stores/linesheet'
+import LoadingIndicator from '../components/LoadingIndicator.vue'
 
 const props = defineProps<{
   id: string
@@ -87,14 +88,9 @@ function handleImageUpload(event: Event) {
   const input = event.target as HTMLInputElement
   if (!input.files || !currentProductId.value) return
   
-  const imageUrls: string[] = []
+  const files = Array.from(input.files)
+  store.addImagesToProduct(currentProductId.value, files)
   
-  Array.from(input.files).forEach(file => {
-    const imageUrl = URL.createObjectURL(file)
-    imageUrls.push(imageUrl)
-  })
-  
-  store.addImagesToProduct(currentProductId.value, imageUrls)
   input.value = ''
   currentProductId.value = null
 }
@@ -155,6 +151,12 @@ function getCleanProductName(productName: string): string {
 
 <template>
   <div class="linesheet-container" v-if="project">
+    <LoadingIndicator :show="store.isLoading" message="Saving changes..." />
+    
+    <div v-if="store.error" class="error-message">
+      {{ store.error }}
+    </div>
+    
     <div class="linesheet-header">
       <button class="back-btn" @click="goToHome">← Ana Sayfaya Dön</button>
       <h1>{{ project.name }}</h1>
@@ -703,5 +705,19 @@ h1 {
      width: 150px;
      height: 100px;
   }
+}
+
+.error-message {
+  background-color: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  border-left: 4px solid #c62828;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 </style>

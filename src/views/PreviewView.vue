@@ -175,7 +175,6 @@ body {
 
 /* Updated Logo container styles */
 .logo-container {
-  border: 1px solid #ccc;
   padding: 5px;
   display: flex;
   align-items: center;
@@ -227,7 +226,7 @@ body {
 
 /* Individual Product Item */
 .product-item {
-  border: 1px solid #ccc;
+  border: 1px solid #e4e4e4;
   background-color: #fff;
   page-break-inside: avoid;
   display: flex;
@@ -241,7 +240,7 @@ body {
   gap: 5px; /* Space between images if two */
   padding: 10px;
   min-height: 180px; /* Ensure consistent height for image area */
-  background-color: #f9f9f9; /* Slight background for image area */
+  background-color: #fff; /* Slight background for image area */
 }
 
 .product-images img {
